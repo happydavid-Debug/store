@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D文件快递柜 - 精确版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: rgba(255, 255, 255, 0.95);
+            --bg-color: #f0f4f8;
+            --text-dark: #2c3e50;
+            --border-color: rgba(52, 152, 219, 0.4);
+
+            /* 3D系统参数 */
+            --base-rotate: rotateX(4deg) rotateY(4deg);
+            --base-perspective: 1200px;
+            --hover-lift: 60px;
+            --element-gap: 2.2rem;
+            --transition-curve: cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transform-style: preserve-3d;
+        }
+
+        body {
+            background: var(--bg-color);
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: var(--base-perspective);
+            overflow-x: hidden;
+        }
+
+        /* 主容器3D系统 */
+        .main-wrapper {
+            width: 90%;
+            max-width: 800px;
+            padding: var(--element-gap);
+            transform: var(--base-rotate) translateZ(0);
+            transition: transform 0.2s var(--transition-curve);
+            position: relative;
+            background: var(--secondary);
+            border-radius: 18px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 3D空间布局 */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--element-gap);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 通用3D对象 */
+        .panel-3d {
+            background: var(--secondary);
+            border-radius: 14px;
+            padding: 1.8rem;
+            transform: translateZ(0);
+            transition: all 0.4s var(--transition-curve);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1.5px solid var(--border-color);
+        }
+
+        /* 悬停提升系统 */
+        .panel-3d:hover {
+            transform: translateZ(var(--hover-lift)) scale(1.03);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(52, 152, 219, 0.15);
+            z-index: 2;
+        }
+
+        /* 左侧区域 */
+        .left-section {
+            display: grid;
+            gap: var(--element-gap);
+        }
+
+        .storage-cabinet {
+            text-align: center;
+        }
+
+        .storage-cabinet p {
+            font-size: 1.4rem;
+            color: var(--primary);
+            transform: translateZ(0);
+        }
+
+        /* 按钮系统 */
+        .buttons {
+            display: grid;
+            gap: calc(var(--element-gap) * 0.8);
+            perspective: 800px;
+        }
+
+        .buttons button {
+            background: var(--secondary);
+            border: 2px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transform: translateZ(10px);
+            transition: all 0.3s var(--transition-curve);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .buttons button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateZ(calc(var(--hover-lift) / 2 + 10px));
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(52, 152, 219, 0.15);
+            z-index: 2;
+        }
+
+        /* 取件码区域 */
+        .pickup-code {
+            text-align: center;
+        }
+
+        .pickup-code span {
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            letter-spacing: 0.3em;
+            color: var(--primary);
+            display: inline-block;
+            margin-top: 1rem;
+            transform: translateZ(15px);
+        }
+
+        /* 右侧上传区域 */
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px dashed var(--border-color);
+        }
+
+        .right-section::before {
+            content: "\f0ee";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            color: var(--primary);
+            font-size: 2.8rem;
+            margin-bottom: 1.2rem;
+            transform: translateZ(25px);
+        }
+
+        /* 密码输入框 */
+        .password-input {
+            width: 100%;
+            padding: 1rem;
+            margin-top: var(--element-gap);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--secondary);
+            transform: translateZ(10px);
+            transition: all 0.3s var(--transition-curve);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .password-input:hover,
+        .password-input:focus {
+            border-color: var(--primary);
+            transform: translateZ(calc(var(--hover-lift) / 2 + 10px));
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(52, 152, 219, 0.15);
+            z-index: 2;
+        }
+
+        /* 消息提示 */
+        .message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 28px;
+            border-radius: 8px;
+            color: white;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: messageSlideIn 0.5s var(--transition-curve);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                transform: translate(-50%, 120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .success {
+            background: #27ae60;
+        }
+
+        .error {
+            background: #c0392b;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            :root {
+                --base-rotate: rotateX(2deg) rotateY(2deg);
+                --hover-lift: 40px;
+                --element-gap: 1.8rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons button {
+                padding: 0.8rem;
+            }
+        }
+
+        /* 隐藏文件选择输入框 */
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper" id="main-wrapper">
+        <div class="container">
+            <div class="left-section">
+                <div class="panel-3d storage-cabinet">
+                    <p>云文件存储柜</p>
+                </div>
+                <div class="buttons">
+                    <button id="send-btn">发送文件</button>
+                    <button id="download-btn">下载文件</button>
+                </div>
+                <div class="panel-3d pickup-code">
+                    <p>取件码</p>
+                    <span id="pickup-code-display">_ _ _ _ _ _</span>
+                </div>
+            </div>
+            <div class="panel-3d right-section">
+                <input type="file" id="file-input">
+                <p>拖放文件或点击上传</p>
+            </div>
+        </div>
+        <input type="password" id="password-input" class="password-input" placeholder="输入密码（可选）">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 文件上传逻辑
+            const dropArea = document.querySelector('.right-section');
+            const fileInput = document.getElementById('file-input');
+            const passwordInput = document.getElementById('password-input');
+
+            // 拖拽处理
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+                dropArea.addEventListener(event, e => e.preventDefault());
+            });
+
+            dropArea.addEventListener('drop', e => {
+                const files = e.dataTransfer.files;
+                fileInput.files = files;
+                handleFileSelect();
+            });
+
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+
+            function handleFileSelect() {
+                if (fileInput.files.length) {
+                    console.log('已选择文件:', fileInput.files[0].name);
+                }
+            }
+
+            // 加密模块
+            const SecurityHelper = {
+                encrypt(text, password) {
+                    if (!password) return text;
+                    const encrypted = Array.from(text).map((c, i) =>
+                        String.fromCharCode(c.charCodeAt(0) ^ password.charCodeAt(i % password.length))
+                    ).join('');
+                    return btoa(encrypted); // 添加 Base64 编码
+                }
+            };
+
+            // 上传处理
+            document.getElementById('send-btn').addEventListener('click', async () => {
+                if (!fileInput.files.length) {
+                    showMessage('请先选择文件', 'error');
+                    return;
+                }
+
+                try {
+                    // 获取取件码
+                    const pickupCode = await generatePickupCode();
+                    if (!pickupCode) throw new Error('取件码生成失败');
+
+                    // 更新显示
+                    document.getElementById('pickup-code-display').textContent =
+                        pickupCode.split('').join(' ');
+
+                    // 构建表单数据
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    formData.append('code', pickupCode);
+                    const encryptedCode = passwordInput.value?
+                        SecurityHelper.encrypt(pickupCode, passwordInput.value) :
+                        null;
+                    formData.append('encrypted_code', encryptedCode);
+                    formData.append('password', passwordInput.value);
+
+                    // 发送请求
+                    const response = await fetch('upload.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    // 处理响应
+                    const result = await parseResponse(response);
+                    if (result.status === 'success') {
+                        showMessage('文件上传成功，取件码：' + pickupCode, 'success');
+                        fileInput.value = '';
+                    } else {
+                        throw new Error(result.msg || '服务器返回未知错误');
+                    }
+                } catch (error) {
+                    showMessage(`上传失败: ${error.message}`, 'error');
+                }
+            });
+
+            // 点击下载按钮跳转到 download.html
+            document.getElementById('download-btn').addEventListener('click', function () {
+                window.location.href = 'download.html';
+            });
+
+            // 辅助函数
+            async function generatePickupCode() {
+                try {
+                    const response = await fetch('generate_pickup_code.php');
+                    const result = await parseResponse(response);
+                    return result.pickupCode;
+                } catch (error) {
+                    console.error('取件码生成失败:', error);
+                    return null;
+                }
+            }
+
+            async function parseResponse(response) {
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`无效的服务器响应: ${text.slice(0, 100)}`);
+                }
+            }
+
+            function showMessage(text, type) {
+                const msg = document.createElement('div');
+                msg.className = `message ${type}`;
+                msg.textContent = text;
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 3500);
+            }
+
+            // 动态调整倾斜角度
+            const mainWrapper = document.getElementById('main-wrapper');
+            let timeoutId;
+            const maxAngle = 20;
+
+            mainWrapper.addEventListener('mouseenter', () => {
+                mainWrapper.style.transition = 'transform 1s var(--transition-curve)';
+                setTimeout(() => {
+                    mainWrapper.style.transition = 'transform 0.2s var(--transition-curve)';
+                }, 300);
+            });
+
+            mainWrapper.addEventListener('mousemove', (e) => {
+                clearTimeout(timeoutId);
+                const rect = mainWrapper.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+
+                const rotateX = (y - 0.5) * -maxAngle;
+                const rotateY = (x - 0.5) * maxAngle;
+
+                mainWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+            });
+
+            mainWrapper.addEventListener('mouseleave', () => {
+                mainWrapper.style.transition = 'transform 1.5s var(--transition-curve)';
+                timeoutId = setTimeout(() => {
+                    mainWrapper.style.transform = `rotateX(4deg) rotateY(4deg) translateZ(0)`;
+                }, 100);
+            });
+        });
+    </script>
+</body>
+
+</html>    
